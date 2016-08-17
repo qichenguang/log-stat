@@ -45,16 +45,20 @@ class DayFile(object):
 
     def writeLine(self,msg):
         try:
-            cur_day_str = datetime.now.strftime('%Y%m%d')
+            #cur_day_str = datetime.now.strftime('%Y%m%d')
+            cur_day_str = time.strftime("%Y%m%d", time.localtime())
             if self.cur_day_str != cur_day_str:
                 self.cur_day_str = cur_day_str
                 #
                 if self.fp:
                     self.fp.close()
-                    self.real_path = os.path.realpath(self.base_path + "/" + cur_day_str + ".txt")
                 #
-                self.fp = open(self.real_path)
+                self.real_path = os.path.realpath(self.base_path + "/" + cur_day_str + ".txt")
+                self.fp = open(self.real_path,"a")
+            #
+            if self.fp:
                 self.fp.write(msg)
+
         except IOError as error:
             traceback.print_exc()
         except OSError as error:
@@ -104,7 +108,8 @@ class LineProtocol(LineReceiver):
         log.msg('Cmd received from %s : %s' % (self.client_ip, line.decode()))
         try:
             interface,ret_time,timestamp= line.decode().split()
-            self.factory.cache.incr(interface,timestamp)
+            qps_key_prev = 'test.sdkapp.access.qps.'
+            self.factory.cache.incr(qps_key_prev + interface,timestamp)
             if self.factory.cache.is_full():
                 msg = self.factory.cache.flush()
                 if msg:
@@ -112,7 +117,7 @@ class LineProtocol(LineReceiver):
 
             #
             time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(timestamp)))
-            self.factory.dayFile.writeLine("%s,%s,%s\n" % (time_str,interface,ret_time))
+            self.factory.dayFile.writeLine("%s,%s,%s\n" % (time_str,interface.split("-")[-2],ret_time))
         except Exception:
             traceback.print_exc()
 

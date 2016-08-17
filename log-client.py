@@ -69,7 +69,7 @@ class Tailor(object):
         reopen_count = self.reopen_count
         while reopen_count >= 0:
             try:
-                self.open_file(self.gen_file_type, self.begin_pos)
+                self.open_file()
                 return True
             except FileError:
                 time.sleep(self.sleep_sec)
@@ -191,14 +191,14 @@ def run():
     #
     tailor = Tailor(base_path="/data0/nginx/logs", file_name="sdkapp.mobile.sina.cn_access.log", gen_file_type="same-name", begin_pos="end")
     #
-    qps_key_prev = 'test.sdkapp.access.qps.'
+    #qps_key_prev = 'test.sdkapp.access.qps.'
     store = []
     try:
         tailor.open_file()
         for line in tailor:
             try:
                 timestamp, interface, ret_time = log_parser.do_process(line)
-                store.append("%s %s %s" % (str(qps_key_prev + interface), str(ret_time), str(timestamp)))
+                store.append("%s %s %s" % (str(interface), str(ret_time), str(timestamp)))
                 if len(store) > 2:
                     client.send("\r\n".join(store) + "\r\n")
                     store.clear()
