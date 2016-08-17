@@ -1,2 +1,2 @@
-# logStat
+# log-stat
 python log parse
